@@ -24,13 +24,45 @@ def add(a,b): #a,b: str, used to avoid floating point error (hopefully)
     S=str(sum([(A[i]+B[i])*10**(L-i-1) for i in range(L)]))
     S=S[:pow]+'.'+S[pow:]
     return S
+def deeify(n):
+    neg=('-' in n)
+    if neg:
+        n=n[1:]
+    pow=int(n[n.index('e')+1:])
+    n=n[:n.index('e')]
+    if '.' not in n:
+        n+='.'
+    idx=n.index('.')
+    n=n[:idx]+n[idx+1:]
+    L=len(n)
+    if pow<=0:
+        if idx<=-pow:
+            n='0.'+'0'*(-pow-idx)+n
+        else:
+            n=n[:idx+pow]+'.'+n[idx+pow:]
+    else:
+        if L-idx<=pow:
+            n=n+'0'*(pow+idx-L)+'.0'
+        else:
+            n=n[:idx+pow]+'.'+n[idx+pow:]
+    if neg:
+        n='-'+n
+    return n
 def isolateNumbers(content):
     go=False
     res=[]
     ans=""
+    ise=False
     for i in content:
-        if go and not (i.isdigit() or i=='.'):
+        if i=='e':
+            ise=True
+            ans+=i
+            continue
+        if go and not (i.isdigit() or i=='.' or (ise and i=='-')):
             go=False
+            if ise:
+                ans=deeify(ans)
+            ise=False
             res.append(ans)
             ans=""
         if not go and (i.isdigit() or i=='-'):
@@ -92,12 +124,12 @@ with open(filepath,'r') as file:
                 maxt=pott
             eqList+=eq+','
             colorList+="rgb("+','.join([str(int(color[2*i:2*i+2],16)) for i in range(3)])+'),'
-        if c>10:
-            break
+        # if c>10:
+        #     break
     eqList=eqList[:-1]+']'
     colorList=colorList[:-1]+']'
-print(eqList)
-print()
-print(colorList)
-print()
-print(f"maxt:{maxt}")
+with open("eq.txt",'w') as file:
+    file.write(eqList)
+with open("color.txt",'w') as file:
+    file.write(colorList)
+print(maxt)
