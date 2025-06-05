@@ -1,3 +1,6 @@
+import dotenv
+import os
+
 def add(a,b): #a,b: str, used to avoid floating point error (hopefully)
     nega,negb=('-' in a),('-' in b)
     a,b=a[1*nega:],b[1*negb:]
@@ -22,7 +25,12 @@ def add(a,b): #a,b: str, used to avoid floating point error (hopefully)
     pow=idx-L
     A,B=[int(i)*(-2*nega+1) for i in a],[int(i)*(-2*negb+1) for i in b]
     S=str(sum([(A[i]+B[i])*10**(L-i-1) for i in range(L)]))
+    neg='-' in S
+    if neg:
+        S=S[1:]
     S=S[:pow]+'.'+S[pow:]
+    if neg:
+        S='-'+S
     return S
 def deeify(n):
     neg=('-' in n)
@@ -76,6 +84,7 @@ def pairify(nums):
     for num in nums:
         ans.append(num)
         if len(ans)==2:
+            # ans[1]='-'+ans[1]
             res.append(ans[:])
             ans=[]
     return res
@@ -92,44 +101,45 @@ def explicitify(pairs):
             res+=ans[:]
             ans=[]
     return res
-def bezier(p1,p2,p3,p4,mint):
-    return f"({1+mint}-t)^3({p1[0]},{p1[1]})+3(t-{mint})({1+mint}-t)^2({p2[0]},{p2[1]})+3(t-{mint})^2({1+mint}-t)({p3[0]},{p3[1]})+(t-{mint})^3({p4[0]},{p4[1]})"
-def lineseg(p1,p2,mint):
-    return f"(t-{mint})({p1[0]},{p1[1]})+({1+mint}-t)({p2[0]},{p2[1]})"
+def bezier(p1,p2,p3,p4,mint,maxt):
+    return f"({1+mint}-{maxt}t)^3({p1[0]},{p1[1]})+3({maxt}t-{mint})({1+mint}-{maxt}t)^2({p2[0]},{p2[1]})+3({maxt}t-{mint})^2({1+mint}-{maxt}t)({p3[0]},{p3[1]})+({maxt}t-{mint})^3({p4[0]},{p4[1]})"
+def lineseg(p1,p2,mint,maxt):
+    return f"({maxt}t-{mint})({p1[0]},{p1[1]})+({1+mint}-{maxt}t)({p2[0]},{p2[1]})"
 def piezify(B):
+    maxt=len(B)
     res=""
     for i in range(len(B)):
-        res+=f"{i}\\leq t\\leq{i+1}:{B[i]},"
+        res+=f"{i}\\leq {maxt}t\\leq{i+1}:{B[i]},"
     return '\\left\\{'+res[:-1]+'\\right\\}'
 def circuit(P):
-    B=[bezier(P[3*i],P[3*i+1],P[3*i+2],P[3*i+3],i) for i in range(len(P)//3)]
-    B.append(lineseg(P[-1],P[0],len(P)//3))
-    return piezify(B),len(P)//3+1
+    B=[bezier(P[3*i],P[3*i+1],P[3*i+2],P[3*i+3],i,len(P)//3+1) for i in range(len(P)//3)]
+    B.append(lineseg(P[-1],P[0],len(P)//3,len(P)//3+1))
+    return piezify(B)
 
-c=0
-filepath=input("SVG Path: ")
-maxt=0
-eqList="["
+dotenv.load_dotenv()
+filepath=os.getenv("SVGPATH")
+eqList=""
+bigList="["
 colorList="C=["
+ln=0
 with open(filepath,'r') as file:
     for line in file:
-        c+=1
         if line[1:5]=="path":
+            ln+=1
             color=line[line.index('fill="#')+7:]
             color=color[:line.index('"')]
             line=line[line.index('d="')+3:]
             line=line[:line.index('"')]
-            eq,pott=circuit(explicitify(pairify(isolateNumbers(line))))
-            if pott>maxt:
-                maxt=pott
-            eqList+=eq+','
+            eq=circuit(explicitify(pairify(isolateNumbers(line))))
+            # eqList+=f"f_{{{ln}}}(t)="+eq+'\n'
+            eqList+=eq+'\n'
+            bigList+=f"f_{{{ln}}}(t),"
             colorList+="rgb("+','.join([str(int(color[2*i:2*i+2],16)) for i in range(3)])+'),'
-        # if c>10:
-        #     break
-    eqList=eqList[:-1]+']'
+    eqList=eqList[:-1]
+    bigList=bigList[:-1]+']'
     colorList=colorList[:-1]+']'
 with open("eq.txt",'w') as file:
+    # file.write(bigList+'\n'+eqList)
     file.write(eqList)
 with open("color.txt",'w') as file:
     file.write(colorList)
-print(maxt)
