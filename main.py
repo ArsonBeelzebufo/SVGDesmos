@@ -77,6 +77,8 @@ def isolateNumbers(content):
             go=True
         if go:
             ans+=i
+        if i=='s':
+            res+=['0','0']
     return res
 def pairify(nums):
     res=[]
@@ -84,7 +86,10 @@ def pairify(nums):
     for num in nums:
         ans.append(num)
         if len(ans)==2:
-            # ans[1]='-'+ans[1]
+            if '-' not in ans[1]:
+                ans[1]='-'+ans[1]
+            else:
+                ans[1]=ans[1][1:]
             res.append(ans[:])
             ans=[]
     return res
