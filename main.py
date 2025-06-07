@@ -126,6 +126,7 @@ filepath=os.getenv("SVGPATH")
 eqList=""
 bigList="["
 colorList="C=["
+html="<script src=\"https://www.desmos.com/api/v1.11/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6\"></script>\n<div id=\"calculator\"></div>\n<script>\n    var elt=document.getElementById('calculator');\n    var calculator=Desmos.GraphingCalculator(elt);\n</script>"
 ln=0
 with open(filepath,'r') as file:
     for line in file:
@@ -141,10 +142,9 @@ with open(filepath,'r') as file:
             bigList+=f"f_{{{ln}}}(t),"
             colorList+="rgb("+','.join([str(int(color[2*i:2*i+2],16)) for i in range(3)])+'),'
     eqList=eqList[:-1]
-    bigList=bigList[:-1]+']'
-    colorList=colorList[:-1]+']'
-with open("eq.txt",'w') as file:
-    # file.write(bigList+'\n'+eqList)
-    file.write(eqList)
-with open("color.txt",'w') as file:
-    file.write(colorList)
+    bigList=bigList[:-1]+']\n'
+    colorList=colorList[:-1]+']\n'
+with open("out.txt",'w') as file:
+    file.write(colorList+bigList+eqList)
+with open("out.html",'w') as file:
+    file.write(html)

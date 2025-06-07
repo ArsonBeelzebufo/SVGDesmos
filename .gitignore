@@ -1,6 +1,6 @@
 /images
 test.py
 /__pycache__
-eq.txt
-color.txt
+out.txt
+out.html
 .env
