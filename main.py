@@ -141,6 +141,8 @@ with open(filepath,'r') as file:
             ln+=1
             color=line[line.index('fill="')+6:]
             color=color[:color.index('"')]
+            if len(color)==4:
+                color=f"#{2*color[1]+2*color[2]+2*color[3]}"
             line=line[line.index('d="')+3:]
             line=line[:line.index('"')]
             eq=circuit(explicitify(pairify(isolateNumbers(line))))
