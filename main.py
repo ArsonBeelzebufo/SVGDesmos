@@ -120,26 +120,35 @@ def circuit(P):
     B=[bezier(P[3*i],P[3*i+1],P[3*i+2],P[3*i+3],i,len(P)//3+1) for i in range(len(P)//3)]
     B.append(lineseg(P[-1],P[0],len(P)//3,len(P)//3+1))
     return piezify(B)
+def htmlify(eq):
+    ans=""
+    for char in eq:
+        if char=='\\':
+            ans+='\\'
+        ans+=char
+    return ans
 
 dotenv.load_dotenv()
 filepath=os.getenv("SVGPATH")
 eqList=""
 bigList="["
 colorList="C=["
-html="<script src=\"https://www.desmos.com/api/v1.11/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6\"></script>\n<div id=\"calculator\"></div>\n<script>\n    var elt=document.getElementById('calculator');\n    var calculator=Desmos.GraphingCalculator(elt);\n</script>"
+html="<script src=\"https://www.desmos.com/api/v1.11/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6\"></script>\n<div id=\"calculator\"></div>\n<script>\n    var elt=document.getElementById('calculator');\n    var calculator=Desmos.GraphingCalculator(elt);"
 ln=0
 with open(filepath,'r') as file:
     for line in file:
         if line[1:5]=="path":
             ln+=1
-            color=line[line.index('fill="#')+7:]
-            color=color[:line.index('"')]
+            color=line[line.index('fill="')+6:]
+            color=color[:color.index('"')]
             line=line[line.index('d="')+3:]
             line=line[:line.index('"')]
             eq=circuit(explicitify(pairify(isolateNumbers(line))))
-            # eqList+=f"f_{{{ln}}}(t)="+eq+'\n'
+            html+=f"\n    calculator.setExpression({{latex:'{htmlify(eq)}',color:'{color}',fill:true,fillOpacity:1,lineWidth:0,lineOpacity:0}});"
+            eqList+=f"f_{{{ln}}}(t)="+eq+'\n'
             eqList+=eq+'\n'
             bigList+=f"f_{{{ln}}}(t),"
+            color=color[1:]
             colorList+="rgb("+','.join([str(int(color[2*i:2*i+2],16)) for i in range(3)])+'),'
     eqList=eqList[:-1]
     bigList=bigList[:-1]+']\n'
@@ -147,4 +156,4 @@ with open(filepath,'r') as file:
 with open("out.txt",'w') as file:
     file.write(colorList+bigList+eqList)
 with open("out.html",'w') as file:
-    file.write(html)
+    file.write(html+"\n</script>")
